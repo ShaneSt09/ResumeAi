@@ -9,6 +9,7 @@ export * from './components/PersonalInfoSection';
 export * from './components/ExperienceSection';
 export * from './components/EducationSection';
 export * from './components/SkillsSection';
+export * from './components/ResumePreview';
 
 // Main component is only exported as default
 export { default } from './ResumeBuilder';

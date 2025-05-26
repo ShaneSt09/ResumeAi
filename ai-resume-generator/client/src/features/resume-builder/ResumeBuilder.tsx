@@ -9,15 +9,12 @@ import { saveAs } from 'file-saver';
 import { ResumeGenerationResponse, GenerateResumeParams, JobExperience, Education } from '../../types/resume';
 import { ApiResponse } from '../../types/api';
 import { FiSave, FiDownload } from 'react-icons/fi';
-import { 
-  PersonalInfoSection, 
-  ExperienceSection, 
-  EducationSection, 
-  SkillsSection,
-  useResumeForm,
-  FormSection,
-  ResumeFormData
-} from './index';
+import { useResumeForm, FormSection, ResumeFormData } from './index';
+import { PersonalInfoSection } from './components/PersonalInfoSection';
+import { ExperienceSection } from './components/ExperienceSection';
+import { EducationSection } from './components/EducationSection';
+import { SkillsSection } from './components/SkillsSection';
+import { ResumePreview } from './components/ResumePreview';
 
 const ResumeBuilder: React.FC = () => {
   const navigate = useNavigate();
@@ -142,25 +139,23 @@ const ResumeBuilder: React.FC = () => {
   }, [formData]);
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Resume Builder</h1>
-        <div className="space-x-2">
+        <h1 className="text-2xl font-bold text-gray-800">Resume Builder</h1>
+        <div className="flex gap-2">
           <Button 
-            onClick={handleSaveToAccount} 
+            onClick={handleSaveToAccount}
             disabled={isSaving}
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className="flex items-center gap-2"
           >
-            <FiSave className="mr-2" />
-            {isSaving ? 'Saving...' : 'Save'}
+            <FiSave /> {isSaving ? 'Saving...' : 'Save'}
           </Button>
           <Button 
+            variant="primary"
             onClick={() => setIsExportModalOpen(true)}
-            disabled={isExporting}
-            className="bg-green-600 text-white hover:bg-green-700"
+            className="flex items-center gap-2"
           >
-            <FiDownload className="mr-2" />
-            {isExporting ? 'Exporting...' : 'Export'}
+            <FiDownload /> Export
           </Button>
         </div>
       </div>
@@ -173,38 +168,50 @@ const ResumeBuilder: React.FC = () => {
         </div>
       )}
 
-      <div className="space-y-6">
-        <PersonalInfoSection 
-          data={formData.personalInfo}
-          onChange={updatePersonalInfo}
-          isExpanded={isSectionExpanded('personal')}
-          onToggle={() => toggleSection('personal')}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <PersonalInfoSection 
+            data={formData.personalInfo}
+            onChange={updatePersonalInfo}
+            isExpanded={isSectionExpanded('personal')}
+            onToggle={() => toggleSection('personal')}
+          />
 
-        <ExperienceSection 
-          experiences={formData.experience}
-          onAdd={addExperience}
-          onUpdate={(index, data) => updateExperience(index, data as any)}
-          onRemove={removeExperience}
-          isExpanded={isSectionExpanded('experience')}
-          onToggle={() => toggleSection('experience')}
-        />
+          <ExperienceSection 
+            experiences={formData.experience}
+            onAdd={addExperience}
+            onUpdate={(index, data) => updateExperience(index, data as any)}
+            onRemove={removeExperience}
+            isExpanded={isSectionExpanded('experience')}
+            onToggle={() => toggleSection('experience')}
+          />
 
-        <EducationSection 
-          education={formData.education}
-          onAdd={addEducation}
-          onUpdate={(index, data) => updateEducation(index, data as any)}
-          onRemove={removeEducation}
-          isExpanded={isSectionExpanded('education')}
-          onToggle={() => toggleSection('education')}
-        />
+          <EducationSection 
+            education={formData.education}
+            onAdd={addEducation}
+            onUpdate={(index, data) => updateEducation(index, data as any)}
+            onRemove={removeEducation}
+            isExpanded={isSectionExpanded('education')}
+            onToggle={() => toggleSection('education')}
+          />
 
-        <SkillsSection 
-          skills={formData.skills}
-          onChange={updateSkills}
-          isExpanded={isSectionExpanded('skills')}
-          onToggle={() => toggleSection('skills')}
-        />
+          <SkillsSection 
+            skills={formData.skills}
+            onChange={updateSkills}
+            isExpanded={isSectionExpanded('skills')}
+            onToggle={() => toggleSection('skills')}
+          />
+        </div>
+        
+        {/* Resume Preview */}
+        <div className="lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)] lg:overflow-y-auto">
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Resume Preview</h2>
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <ResumePreview formData={formData} />
+            </div>
+          </div>
+        </div>
       </div>
 
       <ExportModal
@@ -218,4 +225,4 @@ const ResumeBuilder: React.FC = () => {
 };
 
 // Export the component as default
-export default ResumeBuilder;
+export { ResumeBuilder as default };

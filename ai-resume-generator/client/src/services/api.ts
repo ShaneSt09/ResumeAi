@@ -430,11 +430,44 @@ export const resumeAPI = {
 
   saveResume: async (resumeData: any) => {
     try {
-      const response = await api.post('/resumes', resumeData);
+      // Transform the data to match the server's expected format
+      const formattedData = {
+        title: resumeData.personalInfo?.fullName ? 
+              `${resumeData.personalInfo.fullName}'s Resume` : 
+              'My Resume',
+        sections: [
+          {
+            type: 'personalInfo',
+            data: resumeData.personalInfo || {}
+          },
+          {
+            type: 'experience',
+            items: resumeData.experience || []
+          },
+          {
+            type: 'education',
+            items: resumeData.education || []
+          },
+          {
+            type: 'skills',
+            items: resumeData.skills || []
+          }
+        ],
+        isPublic: false
+      };
+      
+      console.log('Sending resume data:', formattedData);
+      const response = await api.post('/resumes', formattedData);
+      console.log('Save response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error saving resume:', error);
-      throw error;
+      // Return a more user-friendly error message
+      const errorMessage = error.response?.data?.error || 
+                         error.message || 
+                         'Failed to save resume. Please try again.';
+      console.error('Error details:', errorMessage);
+      throw new Error(errorMessage);
     }
   },
 
@@ -454,6 +487,16 @@ export const resumeAPI = {
       return response.data;
     } catch (error) {
       console.error(`Error fetching resume ${id}:`, error);
+      throw error;
+    }
+  },
+  
+  deleteResume: async (id: string) => {
+    try {
+      const response = await api.delete(`/resumes/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting resume ${id}:`, error);
       throw error;
     }
   },

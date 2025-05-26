@@ -67,38 +67,35 @@ export const MyDocuments: React.FC = () => {
   }, [user]);
 
   const handleDeleteDocument = async (id: string, type: DocumentType) => {
-    if (window.confirm(`Are you sure you want to delete this ${type.replace('-', ' ')}?`)) {
-      try {
-        // For now, we'll just show an alert since deleteResume isn't implemented yet
-        alert('Delete functionality will be implemented soon!');
-        
-        // This code will be used when deleteResume is implemented
-        // let response;
-        // switch (type) {
-        //   case 'resume':
-        //     response = await resumeAPI.deleteResume(id);
-        //     break;
-        //   // Add cases for other document types when implemented
-        //   // case 'cover-letter':
-        //   //   response = await coverLetterAPI.deleteCoverLetter(id);
-        //   //   break;
-        //   default:
-        //     throw new Error('Unsupported document type');
-        // }
-
-
-        // if (response?.success) {
-        //   setDocuments(prev => ({
-        //     ...prev,
-        //     [type]: prev[type].filter(doc => doc.id !== id)
-        //   }));
-        // } else {
-        //   throw new Error(response?.error || 'Failed to delete document');
-        // }
-      } catch (err) {
-        console.error('Error deleting document:', err);
-        alert(`Failed to delete ${type}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    if (!window.confirm(`Are you sure you want to delete this ${type.replace('-', ' ')}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      let success = false;
+      
+      switch (type) {
+        case 'resume': {
+          const response = await resumeAPI.deleteResume(id);
+          success = response?.success === true;
+          break;
+        }
+        default:
+          throw new Error('Delete not implemented for this document type');
       }
+      
+      if (success) {
+        // Remove the deleted document from the state
+        setDocuments(prev => ({
+          ...prev,
+          [type]: prev[type].filter(doc => doc.id !== id)
+        }));
+      } else {
+        throw new Error('Failed to delete document');
+      }
+    } catch (err) {
+      console.error('Error deleting document:', err);
+      alert(`Failed to delete document: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
@@ -117,32 +114,39 @@ export const MyDocuments: React.FC = () => {
     }
   };
 
-  const handleDownloadDocument = async (document: Document) => {
+  const handleDownloadDocument = async (doc: Document) => {
     try {
-      let response;
-      switch (document.type) {
+      let blob: Blob;
+      let filename = `${doc.title.replace(/\s+/g, '_').toLowerCase()}`;
+      
+      switch (doc.type) {
         case 'resume':
-          // For now, we'll just show an alert since exportResume isn't implemented yet
-          alert('Export functionality will be implemented soon!');
-          return;
-          // response = await resumeAPI.exportResume(document.id, 'pdf');
-          // break;
-        // Add cases for other document types when implemented
+          // For now, we'll generate a simple text file as a placeholder
+          const resumeContent = `Resume: ${doc.title}\n\n` +
+            `Last Updated: ${new Date(doc.updatedAt).toLocaleDateString()}\n\n`;
+          
+          blob = new Blob([resumeContent], { type: 'text/plain' });
+          filename += '.txt';
+          break;
+          
         default:
           throw new Error('Export not implemented for this document type');
       }
-
-      // This code will be used when exportResume is implemented
-      // if (response?.success && response.data?.downloadUrl) {
-      //   const link = document.createElement('a');
-      //   link.href = response.data.downloadUrl;
-      //   link.download = `${document.title.replace(/\s+/g, '_').toLowerCase()}.pdf`;
-      //   document.body.appendChild(link);
-      //   link.click();
-      //   document.body.removeChild(link);
-      // } else {
-      //   throw new Error(response?.error || 'Failed to export document');
-      // }
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = window.document.createElement('a');
+      const docBody = window.document.body;
+      
+      link.href = url;
+      link.download = filename;
+      docBody.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      docBody.removeChild(link);
+      
     } catch (err) {
       console.error('Error exporting document:', err);
       alert(`Failed to export document: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -150,15 +154,15 @@ export const MyDocuments: React.FC = () => {
   };
 
   // Helper function to safely create DOM elements
-  const createElement = (tag: string, props: any = {}) => {
-    if (typeof document === 'undefined') return null;
+  const createElement = (tag: string, props: Record<string, any> = {}): HTMLElement | null => {
+    if (typeof window === 'undefined' || !window.document) return null;
     
-    const element = document.createElement(tag);
+    const element = window.document.createElement(tag);
     Object.entries(props).forEach(([key, value]) => {
       if (key === 'className' && value) {
         element.className = String(value);
       } else if (key === 'style' && value && typeof value === 'object') {
-        Object.assign(element.style, value);
+        Object.assign((element as HTMLElement).style, value);
       } else if (value !== undefined && value !== null) {
         element.setAttribute(key, String(value));
       }

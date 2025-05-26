@@ -55,24 +55,34 @@ const ResumeBuilder: React.FC = () => {
     setSaveStatus({ type: '', message: '' });
 
     try {
+      // Prepare the resume data
       const resumeData = {
-        ...formData.personalInfo,
-        experience: formData.experience,
-        education: formData.education,
-        skills: formData.skills,
-        userId: user.uid,
+        personalInfo: formData.personalInfo,
+        experience: formData.experience || [],
+        education: formData.education || [],
+        skills: formData.skills || []
       };
 
+      // Save the resume
       const response = await resumeAPI.saveResume(resumeData);
 
       if (response.success) {
-        setSaveStatus({ type: 'success', message: 'Resume saved successfully!' });
+        setSaveStatus({ 
+          type: 'success', 
+          message: 'Resume saved successfully! You can access it from your profile.' 
+        });
       } else {
-        setSaveStatus({ type: 'error', message: response.error || 'Failed to save resume' });
+        setSaveStatus({ 
+          type: 'error', 
+          message: response.error || 'Failed to save resume. Please try again.' 
+        });
       }
     } catch (error) {
       console.error('Error saving resume:', error);
-      setSaveStatus({ type: 'error', message: 'An error occurred while saving the resume' });
+      setSaveStatus({ 
+        type: 'error', 
+        message: error.message || 'An error occurred while saving the resume. Please try again.' 
+      });
     } finally {
       setIsSaving(false);
     }

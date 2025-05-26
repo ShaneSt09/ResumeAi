@@ -50,6 +50,24 @@ class User {
     return collection;
   }
 
+  // Get user by ID
+  static async getById(uid) {
+    try {
+      const userDoc = await this.getCollection().doc(uid).get();
+      if (!userDoc.exists) {
+        return null;
+      }
+      
+      return new User({
+        uid,
+        ...userDoc.data()
+      });
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      throw error;
+    }
+  }
+
   // Match user password
   async matchPassword(enteredPassword) {
     if (!this.passwordHash) {
